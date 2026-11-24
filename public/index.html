@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#241b44">
+<title>ATM Queue Lab | Queueing Model in a Bank ATM</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body id="top">
+<a href="#study" class="skip">Skip to the study</a>
+<header class="top">
+<div class="wrap">
+<nav class="nav" aria-label="Project"><a class="brand" href="#top"><i></i>ATM Queue Lab</a><div class="links"><a href="#study">Study</a><a href="#model">Model</a><a href="#probability">Probability</a><a href="#simulator">Simulation</a><a href="#scenarios">What if?</a><a href="#source">Source</a></div></nav>
+<div class="hero">
+<div><div class="eyebrow">Research project · M/M/1</div><h1>One ATM.<br><em>Three periods.</em></h1><p>An interactive companion to <cite>Queueing Model in a Bank ATM</cite> by Sonia Kalra and Supriya. Explore why ATM visits take longer, how random arrivals build a line, and what happens as demand nears capacity.</p><div class="hero-actions"><a class="button primary" href="#study">Explore the study ↓</a><a class="button paper-link" href="https://www.researchgate.net/publication/372478349_Queueing_Model_in_a_Bank_ATM" target="_blank" rel="noopener noreferrer"><span class="icon" aria-hidden="true">↗</span>Read the paper on ResearchGate</a></div></div>
+<div class="machinepanel" role="img" aria-label="Example system size four: three people are waiting and one is using the ATM."><div class="eyebrow">One machine, one customer in service</div><div class="machine-stage" aria-hidden="true"><span class="silhouette"></span><span class="silhouette"></span><span class="silhouette"></span><span class="silhouette active"></span><div class="atm"><div class="screen">ATM</div><div class="slot"></div></div></div><div class="hero-caption"><span>Three waiting →</span><span>One at the ATM</span></div><p class="hero-example">In this example, four customers are in the system. Three are waiting, and one is using the ATM.</p></div>
+</div>
+</div>
+</header>
+<main class="wrap">
+<section id="study">
+<div class="sectionhead"><div><div class="eyebrow">The case study</div><h2>How busy was the ATM?</h2></div><p>The authors collected data at one ATM over three weeks and analyzed morning, afternoon, and evening separately. The paper publishes per-hour rates for those periods. The waiting times below come from the queueing model.</p></div>
+<div class="grid grid3" id="period-cards"></div>
+<div class="grid gap">
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">⇄</span><span>Arrivals vs. service capacity</span></h3><div class="legend"><span><i class="swatch" style="--color:#7445a2"></i>Arrivals</span><span><i class="swatch" style="--color:#9ed6dc"></i>Capacity</span></div><canvas class="chart short" id="rates" role="img" aria-label="Morning 18 arrivals and 25 capacity, afternoon 11 and 16, evening 20 and 25 per hour."></canvas><p class="caption">Morning has room for 7 more customers per hour. Afternoon and evening each have room for 5.</p></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">◷</span><span>Where the visit time goes</span></h3><div class="legend"><span><i class="swatch" style="--color:#7445a2"></i>Waiting</span><span><i class="swatch" style="--color:#9ed6dc"></i>Using the ATM</span></div><canvas class="chart short" id="visits" role="img" aria-label="Mean wait and service in minutes: morning 6.17 and 2.40, afternoon 8.25 and 3.75, evening 9.60 and 2.40."></canvas><p class="caption">Afternoon and evening both average 12 minutes in the system. Afternoon customers wait 1.35 minutes less on average and spend 1.35 minutes more using the ATM.</p></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">⋮</span><span>How many customers are there?</span></h3><div class="legend"><span><i class="swatch" style="--color:#7445a2"></i>Waiting, L<sub>q</sub></span><span><i class="swatch" style="--color:#9ed6dc"></i>In service, ρ</span></div><canvas class="chart short" id="people" role="img" aria-label="Expected numbers waiting are 1.85 morning, 1.51 afternoon, and 3.20 evening. Average numbers in service are .72, .6875, and .80."></canvas><p class="caption">On an average evening, 3.20 customers are waiting and 0.80 are in service, for 4.00 in the system. The service count is a time average for a single ATM.</p></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">◔</span><span>Busy time and idle time</span></h3><div class="legend"><span><i class="swatch" style="--color:#7445a2"></i>Busy</span><span><i class="swatch" style="--color:#eadcf2"></i>Idle</span></div><canvas class="chart short" id="busy" role="img" aria-label="The ATM is busy 72% of the morning, 68.75% of the afternoon, and 80% of the evening in the model."></canvas><p class="caption">Evening arrivals have an 80% chance of finding the ATM busy. Under Poisson arrivals, this equals the share of time the ATM is busy.</p></article>
+</div>
+
+<div class="note" role="note"><p><strong>Evening has the longest queue wait.</strong> Its 80% utilization is the highest of the three periods. The model gives a 9.60-minute mean wait and an average of 3.20 customers waiting. Morning has the shortest wait and the largest gap between demand and service capacity.</p><p><strong>Afternoon has the lowest arrival rate.</strong> It also has the lowest service capacity. Since afternoon and evening each have a gap of five customers per hour, both have a 12-minute mean total visit under the model.</p></div>
+</section>
+<section id="model">
+<div class="sectionhead"><div><div class="eyebrow">Model mechanics</div><h2>From arrivals to departures</h2></div><p>The first M describes Poisson arrivals, the second describes exponential service times, and 1 means one ATM. Within each period, the model treats arrivals and service as independent with constant rates.</p></div>
+<div class="grid">
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">⇢</span><span>Customer journey</span></h3><div class="journey"><div class="flow" id="journey-flow" role="list" aria-label="Stages of an ATM visit">
+<div role="listitem" class="active" aria-current="step"><strong aria-hidden="true">⇥</strong>Arrive</div>
+<div role="listitem"><strong aria-hidden="true">⋮</strong>Wait in line</div>
+<div role="listitem"><strong aria-hidden="true">▣</strong>Use ATM</div>
+<div role="listitem"><strong aria-hidden="true">⇢</strong>Depart</div>
+</div>
+<p class="visual-readout" id="journey-message" aria-live="polite">A customer arrives while the ATM is busy. Their wait starts when they join the back of the line.</p>
+<div class="controls"><button class="button" type="button" id="journey-next">Next stage</button><button class="button" type="button" id="journey-play">Play journey</button></div></div><p class="caption">When the machine is free, an arrival goes straight into service. The model assumes unlimited queue capacity and an effectively unlimited source of customers.</p><p class="caption">Rates are customers per hour. The averages for the two exponential clocks are 60/λ minutes between arrivals and 60/μ minutes per transaction.</p></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">↔</span><span>How the system moves between states</span></h3><div class="states"><div><strong>0</strong>Idle</div><div><strong>1</strong>In service</div><div><strong>2</strong>One waiting</div><div><strong>3+</strong>Two or more waiting</div></div><p class="caption">An arrival increases N by one at rate λ. When N is positive, a transaction finishes at rate μ and decreases N by one. For example, one arrival takes the system from N = 1 to N = 2, so the new customer waits. The next completion sends N back to 1 as the waiting customer starts service.</p><p class="caption">Steady state requires λ &lt; μ. A smaller gap μ − λ produces a longer average visit, all else equal.</p></article>
+</div>
+<article class="card gap"><h3 class="icon-heading"><span class="icon" aria-hidden="true">∑</span><span>Formula reference</span></h3><div class="table-wrap" tabindex="0" aria-label="Scrollable formula reference table"><table><thead><tr><th scope="col">Measure</th><th scope="col">Equation</th><th scope="col">Interpretation</th></tr></thead><tbody>
+<tr><th scope="row">ρ</th><td>λ/μ</td><td>Fraction of time the machine is busy</td></tr>
+<tr><th scope="row">P₀ and P(N = n)</th><td>1 − ρ and (1 − ρ)ρⁿ</td><td>Chance the system is empty or has exactly n customers, including the one in service</td></tr>
+<tr><th scope="row">P(N ≤ n)</th><td>1 − ρⁿ⁺¹</td><td>Chance there are at most n customers in the system</td></tr>
+<tr><th scope="row">L<sub>s</sub> and L<sub>q</sub></th><td>λ/(μ − λ) and L<sub>s</sub> − ρ</td><td>Mean customer count in the system and in the waiting line</td></tr>
+<tr><th scope="row">W<sub>s</sub> and W<sub>q</sub></th><td>1/(μ − λ) and ρ/(μ − λ)</td><td>Mean time in the system and mean queue wait, both in hours</td></tr>
+<tr><th scope="row">Little’s Law</th><td>L<sub>s</sub> = λW<sub>s</sub>, L<sub>q</sub> = λW<sub>q</sub></td><td>Connects average customer counts to average time in each part of the queue</td></tr>
+</tbody></table></div></article>
+</section>
+<section id="probability">
+<div class="sectionhead"><div><div class="eyebrow">Probability explorer</div><h2>How long can the line get?</h2></div><p>The paper plots the probability of each system size for the three periods. Compare the full set of model curves, explore the cumulative probability, or try a wait threshold. <a href="#paper-results">See the published figures and tables.</a></p></div>
+<div class="controls" id="prob-controls" aria-label="Probability chart period"><button class="button" data-period="All" aria-pressed="true">All periods</button><button class="button" data-period="Morning" aria-pressed="false">Morning</button><button class="button" data-period="Afternoon" aria-pressed="false">Afternoon</button><button class="button" data-period="Evening" aria-pressed="false">Evening</button></div>
+<div class="grid">
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">•</span><span>Exactly n customers · P(N = n)</span></h3><div class="legend periods-legend"></div><canvas class="chart" id="pmf" role="img" aria-label="Probability of exactly n customers in the system. Values are available in the probability table."></canvas><p class="caption visual-readout" id="pmf-text"></p></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">∫</span><span>At most n customers · P(N ≤ n)</span></h3><div class="legend periods-legend"></div><canvas class="chart" id="cdf" role="img" aria-label="Cumulative probability by system size. Values are available in the probability table."></canvas><p class="caption visual-readout" id="cdf-text"></p></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">⌛︎</span><span>Chance your queue wait exceeds a threshold</span></h3><div class="range gap"><label for="threshold">Wait threshold <output id="threshold-value" for="threshold">10 min</output></label><input id="threshold" type="range" min="0" max="40" step="1" value="10"></div><div class="metrics" id="risk-values" aria-live="polite"></div><canvas class="chart" id="risk" role="img" aria-label="Model-implied probability that queue wait exceeds the selected threshold. Exact values are shown above."></canvas><p class="visual-readout" id="risk-note"></p><p class="caption">Model extension: P(W<sub>q</sub> &gt; t) = ρ exp[−(μ − λ)t], with t in hours. At zero minutes this gives the chance of any positive wait.</p></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">▤</span><span>Probability table</span></h3><p class="caption">System size N counts customers in service and waiting. For N ≥ 1, exactly N − 1 customers are waiting.</p><div class="table-wrap tall" tabindex="0" aria-label="Scrollable probability table"><table id="prob-table"></table></div><div class="controls"><button type="button" class="button" id="download"><span class="icon" aria-hidden="true">↓</span>Download probability CSV</button></div></article>
+</div>
+</section>
+<section id="paper-results">
+<div class="sectionhead"><div><div class="eyebrow">Published results</div><h2>Figures and tables from the paper</h2></div><p>The original figures appear beside their published tables. Bars in the tables show how cumulative probability approaches 1. The Probability Explorer uses recalculated values.</p></div>
+<div class="paper-results">
+<article class="card paper-result" style="--period-color:var(--evening)" aria-labelledby="paper-evening">
+<div class="grid">
+<figure aria-labelledby="paper-evening" aria-describedby="paper-evening-note">
+<figcaption><h3 id="paper-evening" class="icon-heading"><span class="icon" aria-hidden="true">☾</span><span>Figure 1 · Evening probabilities</span></h3></figcaption>
+<img class="paper-figure-image" width="497" height="314" alt="Published bar chart showing the probability of each customer count in the evening." src="assets/figures/figure-1-evening.jpg">
+<p class="caption">Original figure · p. 506</p>
+<p class="visual-readout" id="paper-evening-note">An empty ATM is least likely in the evening (20%). As customer counts rise, the probabilities fall more slowly than in the morning or afternoon. Table 1 gives 0.9766 for 16 or fewer customers.</p>
+<p class="caption"><a href="#paper-table-1">Read the exact probabilities in Table 1</a></p>
+</figure>
+<div>
+<h4 id="paper-table-1">Table 1 · Evening model</h4>
+<p class="caption">Published probabilities · p. 505</p>
+<div class="table-wrap">
+<table aria-labelledby="paper-table-1">
+<thead><tr><th scope="col">n</th><th scope="col">Exactly n</th><th scope="col">At most n</th></tr></thead>
+<tbody>
+<tr><th scope="row">0</th><td>0.2</td><td><div class="paper-cumulative"><span>0.2</span><i aria-hidden="true" style="--fill:20.0%"></i></div></td></tr>
+<tr><th scope="row">1</th><td>0.16</td><td><div class="paper-cumulative"><span>0.36</span><i aria-hidden="true" style="--fill:36.00%"></i></div></td></tr>
+<tr><th scope="row">2</th><td>0.128</td><td><div class="paper-cumulative"><span>0.488</span><i aria-hidden="true" style="--fill:48.800%"></i></div></td></tr>
+<tr><th scope="row">3</th><td>0.1024</td><td><div class="paper-cumulative"><span>0.5904</span><i aria-hidden="true" style="--fill:59.0400%"></i></div></td></tr>
+<tr><th scope="row">4</th><td>0.0819</td><td><div class="paper-cumulative"><span>0.6723</span><i aria-hidden="true" style="--fill:67.2300%"></i></div></td></tr>
+<tr><th scope="row">5</th><td>0.06554</td><td><div class="paper-cumulative"><span>0.738</span><i aria-hidden="true" style="--fill:73.800%"></i></div></td></tr>
+<tr><th scope="row">6</th><td>0.05243</td><td><div class="paper-cumulative"><span>0.790</span><i aria-hidden="true" style="--fill:79.000%"></i></div></td></tr>
+<tr><th scope="row">7</th><td>0.04194</td><td><div class="paper-cumulative"><span>0.832</span><i aria-hidden="true" style="--fill:83.200%"></i></div></td></tr>
+<tr><th scope="row">8</th><td>0.03355</td><td><div class="paper-cumulative"><span>0.865</span><i aria-hidden="true" style="--fill:86.500%"></i></div></td></tr>
+<tr><th scope="row">9</th><td>0.02684</td><td><div class="paper-cumulative"><span>0.892</span><i aria-hidden="true" style="--fill:89.200%"></i></div></td></tr>
+<tr><th scope="row">10</th><td>0.02147</td><td><div class="paper-cumulative"><span>0.914</span><i aria-hidden="true" style="--fill:91.400%"></i></div></td></tr>
+<tr><th scope="row">11</th><td>0.01718</td><td><div class="paper-cumulative"><span>0.931</span><i aria-hidden="true" style="--fill:93.100%"></i></div></td></tr>
+<tr><th scope="row">12</th><td>0.01374</td><td><div class="paper-cumulative"><span>0.944</span><i aria-hidden="true" style="--fill:94.400%"></i></div></td></tr>
+<tr><th scope="row">13</th><td>0.01099</td><td><div class="paper-cumulative"><span>0.955</span><i aria-hidden="true" style="--fill:95.500%"></i></div></td></tr>
+<tr><th scope="row">14</th><td>0.008794</td><td><div class="paper-cumulative"><span>0.964</span><i aria-hidden="true" style="--fill:96.400%"></i></div></td></tr>
+<tr><th scope="row">15</th><td>0.007035</td><td><div class="paper-cumulative"><span>0.9710</span><i aria-hidden="true" style="--fill:97.1000%"></i></div></td></tr>
+<tr><th scope="row">16</th><td>0.005628</td><td><div class="paper-cumulative"><span>0.9766</span><i aria-hidden="true" style="--fill:97.6600%"></i></div></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</article>
+<article class="card paper-result" style="--period-color:var(--morning)" aria-labelledby="paper-morning">
+<div class="grid">
+<figure aria-labelledby="paper-morning" aria-describedby="paper-morning-note">
+<figcaption><h3 id="paper-morning" class="icon-heading"><span class="icon" aria-hidden="true">◒</span><span>Figure 2 · Morning probabilities</span></h3></figcaption>
+<img class="paper-figure-image" width="497" height="315" alt="Published bar chart showing the probability of each customer count in the morning." src="assets/figures/figure-2-morning.jpg">
+<p class="caption">Original figure · p. 507</p>
+<p class="visual-readout" id="paper-morning-note">The ATM is empty 28% of the time in the paper’s model. Table 2 gives 0.988 for 13 or fewer customers, even though the chance of exactly 13 is just 0.0039.</p>
+<p class="caption"><a href="#paper-table-2">Read the exact probabilities in Table 2</a></p>
+</figure>
+<div>
+<h4 id="paper-table-2">Table 2 · Morning model</h4>
+<p class="caption">Published probabilities · p. 507</p>
+<div class="table-wrap">
+<table aria-labelledby="paper-table-2">
+<thead><tr><th scope="col">n</th><th scope="col">Exactly n</th><th scope="col">At most n</th></tr></thead>
+<tbody>
+<tr><th scope="row">0</th><td>0.28</td><td><div class="paper-cumulative"><span>0.28</span><i aria-hidden="true" style="--fill:28.00%"></i></div></td></tr>
+<tr><th scope="row">1</th><td>0.201</td><td><div class="paper-cumulative"><span>0.481</span><i aria-hidden="true" style="--fill:48.100%"></i></div></td></tr>
+<tr><th scope="row">2</th><td>0.145</td><td><div class="paper-cumulative"><span>0.626</span><i aria-hidden="true" style="--fill:62.600%"></i></div></td></tr>
+<tr><th scope="row">3</th><td>0.104</td><td><div class="paper-cumulative"><span>0.73</span><i aria-hidden="true" style="--fill:73.00%"></i></div></td></tr>
+<tr><th scope="row">4</th><td>0.0752</td><td><div class="paper-cumulative"><span>0.805</span><i aria-hidden="true" style="--fill:80.500%"></i></div></td></tr>
+<tr><th scope="row">5</th><td>0.0541</td><td><div class="paper-cumulative"><span>0.859</span><i aria-hidden="true" style="--fill:85.900%"></i></div></td></tr>
+<tr><th scope="row">6</th><td>0.0390</td><td><div class="paper-cumulative"><span>0.898</span><i aria-hidden="true" style="--fill:89.800%"></i></div></td></tr>
+<tr><th scope="row">7</th><td>0.0281</td><td><div class="paper-cumulative"><span>0.926</span><i aria-hidden="true" style="--fill:92.600%"></i></div></td></tr>
+<tr><th scope="row">8</th><td>0.0202</td><td><div class="paper-cumulative"><span>0.946</span><i aria-hidden="true" style="--fill:94.600%"></i></div></td></tr>
+<tr><th scope="row">9</th><td>0.0146</td><td><div class="paper-cumulative"><span>0.961</span><i aria-hidden="true" style="--fill:96.100%"></i></div></td></tr>
+<tr><th scope="row">10</th><td>0.0105</td><td><div class="paper-cumulative"><span>0.971</span><i aria-hidden="true" style="--fill:97.100%"></i></div></td></tr>
+<tr><th scope="row">11</th><td>0.0075</td><td><div class="paper-cumulative"><span>0.979</span><i aria-hidden="true" style="--fill:97.900%"></i></div></td></tr>
+<tr><th scope="row">12</th><td>0.0054</td><td><div class="paper-cumulative"><span>0.984</span><i aria-hidden="true" style="--fill:98.400%"></i></div></td></tr>
+<tr><th scope="row">13</th><td>0.0039</td><td><div class="paper-cumulative"><span>0.988</span><i aria-hidden="true" style="--fill:98.800%"></i></div></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</article>
+<article class="card paper-result" style="--period-color:var(--afternoon)" aria-labelledby="paper-afternoon">
+<div class="grid">
+<figure aria-labelledby="paper-afternoon" aria-describedby="paper-afternoon-note">
+<figcaption><h3 id="paper-afternoon" class="icon-heading"><span class="icon" aria-hidden="true">☀</span><span>Figure 3 · Afternoon probabilities</span></h3></figcaption>
+<img class="paper-figure-image" width="497" height="317" alt="Published bar chart showing the probability of each customer count in the afternoon." src="assets/figures/figure-3-afternoon.jpg">
+<p class="caption">Original figure · p. 508</p>
+<p class="visual-readout" id="paper-afternoon-note">Afternoon has the highest published probability of an empty system (31%). Table 3 gives 0.992 for 12 or fewer customers. Its probabilities use the paper’s rounded utilization.</p>
+<p class="caption"><a href="#paper-table-3">Read the exact probabilities in Table 3</a></p>
+</figure>
+<div>
+<h4 id="paper-table-3">Table 3 · Afternoon model</h4>
+<p class="caption">Published probabilities · p. 508</p>
+<div class="table-wrap">
+<table aria-labelledby="paper-table-3">
+<thead><tr><th scope="col">n</th><th scope="col">Exactly n</th><th scope="col">At most n</th></tr></thead>
+<tbody>
+<tr><th scope="row">0</th><td>0.31</td><td><div class="paper-cumulative"><span>0.31</span><i aria-hidden="true" style="--fill:31.00%"></i></div></td></tr>
+<tr><th scope="row">1</th><td>0.214</td><td><div class="paper-cumulative"><span>0.524</span><i aria-hidden="true" style="--fill:52.400%"></i></div></td></tr>
+<tr><th scope="row">2</th><td>0.148</td><td><div class="paper-cumulative"><span>0.672</span><i aria-hidden="true" style="--fill:67.200%"></i></div></td></tr>
+<tr><th scope="row">3</th><td>0.102</td><td><div class="paper-cumulative"><span>0.774</span><i aria-hidden="true" style="--fill:77.400%"></i></div></td></tr>
+<tr><th scope="row">4</th><td>0.0704</td><td><div class="paper-cumulative"><span>0.844</span><i aria-hidden="true" style="--fill:84.400%"></i></div></td></tr>
+<tr><th scope="row">5</th><td>0.0486</td><td><div class="paper-cumulative"><span>0.893</span><i aria-hidden="true" style="--fill:89.300%"></i></div></td></tr>
+<tr><th scope="row">6</th><td>0.0335</td><td><div class="paper-cumulative"><span>0.926</span><i aria-hidden="true" style="--fill:92.600%"></i></div></td></tr>
+<tr><th scope="row">7</th><td>0.0231</td><td><div class="paper-cumulative"><span>0.949</span><i aria-hidden="true" style="--fill:94.900%"></i></div></td></tr>
+<tr><th scope="row">8</th><td>0.0159</td><td><div class="paper-cumulative"><span>0.965</span><i aria-hidden="true" style="--fill:96.500%"></i></div></td></tr>
+<tr><th scope="row">9</th><td>0.0110</td><td><div class="paper-cumulative"><span>0.977</span><i aria-hidden="true" style="--fill:97.700%"></i></div></td></tr>
+<tr><th scope="row">10</th><td>0.0076</td><td><div class="paper-cumulative"><span>0.984</span><i aria-hidden="true" style="--fill:98.400%"></i></div></td></tr>
+<tr><th scope="row">11</th><td>0.0052</td><td><div class="paper-cumulative"><span>0.989</span><i aria-hidden="true" style="--fill:98.900%"></i></div></td></tr>
+<tr><th scope="row">12</th><td>0.0036</td><td><div class="paper-cumulative"><span>0.992</span><i aria-hidden="true" style="--fill:99.200%"></i></div></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</article>
+</div>
+</section>
+<section id="simulator">
+<div class="sectionhead"><div><div class="eyebrow">Animated discrete-event simulation</div><h2>Watch the queue form</h2></div><p>The ATM starts empty at time zero. Press Play to run the simulation or Step event to advance one arrival or departure at a time. Reset returns to time zero.</p></div>
+<div class="grid">
+<article class="card simcard"><h3 class="icon-heading"><span class="icon" aria-hidden="true">▣</span><span>ATM simulation</span></h3><div class="controls sim-settings"><label for="sim-period">Period <select id="sim-period"></select></label><label for="pace">Speed <select id="pace"><option value="1050">Slow</option><option value="470" selected>Normal</option><option value="130">Fast</option></select></label></div>
+<div class="controls sim-actions"><button class="button primary" id="play" type="button">Play</button><button class="button" id="step" type="button">Step event</button><button class="button" id="reset" type="button">Reset</button></div>
+<div class="simflow"><div class="lane"><div class="eyebrow">Waiting · oldest first</div><div class="dots" id="sim-queue"></div></div><div class="lane service"><div class="eyebrow">At ATM</div><div class="dots" id="sim-server"></div></div></div>
+<div class="metrics" id="sim-values"></div><p class="status" id="sim-status" aria-live="polite"></p></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">⌁</span><span>Queue length over simulated time</span></h3><canvas class="chart" id="trace" role="img" aria-label="Step chart of the number of waiting customers during the most recent simulation events. The current number is shown in the simulation panel."></canvas><p class="visual-readout" id="trace-note"></p><p class="caption">The trace rises when someone joins the line and falls when someone leaves the line to start service. Flat segments show the queue length holding steady between events.</p><h3 class="gap">Recent events</h3><ol class="events" style="color:var(--muted)" id="events"></ol></article>
+</div>
+
+<div class="grid gap">
+<article class="card">
+<h3 class="icon-heading"><span class="icon" aria-hidden="true">↗</span><span>Arrivals vs. completed visits</span></h3>
+<div class="legend"><span><i class="swatch" style="--color:#087786"></i>Arrivals</span><span><i class="swatch" style="--color:#7445a2"></i>Completed visits (dashed)</span></div>
+<canvas class="chart" id="throughput-trace" role="img" aria-label="Step chart of cumulative arrivals and completed visits. The gap is the number still in the system." aria-describedby="throughput-note"></canvas>
+<p class="visual-readout" id="throughput-note"></p>
+<p class="caption">The vertical gap counts everyone still in the system, including the customer using the ATM.</p>
+</article>
+<article class="card">
+<h3 class="icon-heading"><span class="icon" aria-hidden="true">◷</span><span>Running mean wait vs. model estimate</span></h3>
+<div class="legend"><span><i class="swatch" style="--color:#087786"></i>Simulation</span><span><i class="swatch" style="--color:#9f461a"></i>Steady-state model (dashed)</span></div>
+<canvas class="chart" id="wait-trace" role="img" aria-label="Step chart of mean queue wait among completed visits with a horizontal steady-state benchmark." aria-describedby="wait-trace-note"></canvas>
+<p class="visual-readout" id="wait-trace-note"></p>
+<p class="caption">The simulation line starts after the first completed visit. It can stay above or below the model estimate during a short run.</p>
+</article>
+</div>
+<article class="card gap"><h3>What to expect from a single run</h3><p class="caption">The running mean uses completed visits only. A short run can differ from the steady-state estimate because the ATM starts empty and arrival and service times vary.</p></article>
+</section>
+<section id="scenarios">
+<div class="sectionhead"><div><div class="eyebrow">Capacity scenarios</div><h2>What if demand changes?</h2></div><p>Use a study period as a starting point and change either rate. The model quantifies how quickly waiting grows as demand approaches capacity.</p></div>
+<div class="grid">
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">≡</span><span>Set demand and capacity</span></h3><div class="controls" id="presets" aria-label="Scenario presets"></div><div class="ranges">
+<div class="range"><label for="lambda">Arrivals, λ <output id="lambda-value" for="lambda"></output></label><input id="lambda" type="range" min="0" max="45" step=".5" value="20"></div>
+<div class="range"><label for="mu">Service capacity, μ <output id="mu-value" for="mu"></output></label><input id="mu" type="range" min="5" max="50" step=".5" value="25"></div></div>
+<p class="status" id="scenario-status" aria-live="polite"></p><div class="metrics" id="scenario-metrics"></div></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">↗</span><span>Waiting as demand approaches capacity</span></h3><canvas class="chart" id="sensitivity" role="img" aria-label="Mean queue wait versus utilization at the selected service rate. The current scenario values are presented alongside the chart."></canvas><p class="visual-readout" id="sensitivity-note"></p></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">▦</span><span>Demand and capacity heatmap</span></h3><p class="caption">Mean queue wait in minutes. Select a cell to load that combination into the calculator. Capacity runs down the left, and arrivals run across the top.</p><p class="caption heatmap-tip">Swipe across the heatmap to see more arrival rates.</p><div class="heatmap-scroll" tabindex="0" aria-label="Scrollable heatmap of demand and capacity"><div class="map" id="heatmap"></div></div><p class="visual-readout" id="heatmap-status"></p><div class="legend"><span><i class="swatch" style="--color:#cef0ef"></i>0–5 min</span><span><i class="swatch" style="--color:#e9dcfa"></i>&gt;5–10 min</span><span><i class="swatch" style="--color:#ffd8c6"></i>&gt;10–20 min</span><span><i class="swatch" style="--color:#efadbe"></i>&gt;20 min</span><span><i class="swatch" style="--color:#dedbe6"></i>Unstable</span></div></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">⇅</span><span>What modest changes could do</span></h3><div class="table-wrap" tabindex="0" aria-label="Scrollable comparison of capacity scenarios"><table id="interventions"></table></div><p class="caption">In the model, two fewer arrivals per hour cuts the evening mean wait by about 36%. Combining that change with faster service cuts it by about 60%. These are illustrations using the paper’s rates.</p></article>
+</div>
+<article class="card gap">
+<h3 class="icon-heading"><span class="icon" aria-hidden="true">↘</span><span>How faster service shortens the evening queue</span></h3>
+<p class="caption">Evening demand stays at 20 arrivals per hour. Follow the moving dot as the ATM’s service capacity increases.</p>
+<canvas class="chart" id="capacity-sweep" role="img" aria-label="Mean number of customers waiting falls as service capacity rises." aria-describedby="capacity-sweep-summary"></canvas>
+<p class="visual-readout" id="capacity-sweep-value"></p>
+<p class="caption" id="capacity-sweep-summary">The model estimates 3.20 customers waiting on average at 25 services per hour and 0.76 at 35. The line falls fastest near the evening baseline.</p>
+</article>
+<article class="card gap">
+<h3 class="icon-heading"><span class="icon" aria-hidden="true">↗</span><span>How arrivals affect total visit time</span></h3>
+<p class="caption">The ATM can serve 25 customers per hour, as in the paper’s evening period. Follow the dot to see how more arrivals affect the average time spent waiting and using the ATM.</p>
+<canvas class="chart" id="arrival-sweep" role="img" aria-label="Mean total visit time rises as arrivals increase at a fixed service capacity." aria-describedby="arrival-sweep-summary"></canvas>
+<p class="visual-readout" id="arrival-sweep-value"></p>
+<p class="caption" id="arrival-sweep-summary">At 15 arrivals per hour, the modeled visit averages 6 minutes. At the evening baseline of 20 arrivals per hour, it takes 12 minutes. At 22 arrivals per hour, it rises to 20 minutes.</p>
+</article>
+</section>
+<section id="source">
+<div class="sectionhead"><div><div class="eyebrow">Reproducibility</div><h2>Reading the paper’s results</h2></div><p>The project reproduces the model from the reported rates and keeps full precision until display. The Probability Explorer uses exact model calculations. The published results above keep the paper’s original values.</p></div>
+<div class="grid">
+<article class="card"><h3>Three details that matter</h3><details open><summary>Correcting the generic L<sub>s</sub> formula</summary><p class="caption">The formula list on p. 505 prints λ/(λ − μ). The worked examples use λ/(μ − λ), which gives a positive mean for a stable queue and agrees with Little’s Law.</p></details>
+<details><summary>Why the afternoon probabilities differ slightly</summary><p class="caption">For 11 arrivals and capacity 16 per hour, ρ is 0.6875. The published table uses 0.69 and P₀ = 0.31. Keeping full precision gives P₀ = 0.3125 and W<sub>q</sub> = 8.25 minutes. Converting the paper’s rounded 0.138 hours gives 8.28 minutes.</p></details>
+<details><summary>What the probability tables count</summary><p class="caption">The evening example describes 0.16 as the probability of one person in the queue. Table 1 gives it for N = 1 in the system, when one customer is in service and nobody is waiting. The chance exactly one customer is waiting is P(N = 2) = 0.128.</p></details></article>
+<article class="card"><h3 class="icon-heading"><span class="icon" aria-hidden="true">▤</span><span>Source and scope</span></h3><p>Sonia Kalra and Supriya (2018). <cite>Queueing Model in a Bank ATM</cite>. International Journal of Research and Analytical Reviews, 5(4), 504–508. Article IJRAR1BIP089.</p><p class="caption">Pages 504–505 describe the setup and formulas. Tables 1–3 and Figures 1–3 provide the period-specific probability results on pp. 505–508.</p><p class="caption">The article provides period-level rates rather than event timestamps, exact observation windows, or model-fit diagnostics. The laboratory therefore uses the paper’s aggregate inputs. Its risk curves, event traces, heatmap, and capacity options are model-based extensions.</p><div class="controls source-actions"><a class="button paper-link" href="https://www.researchgate.net/publication/372478349_Queueing_Model_in_a_Bank_ATM" target="_blank" rel="noopener noreferrer"><span class="icon" aria-hidden="true">↗</span>Read the paper on ResearchGate</a><button type="button" class="button" id="download-baselines"><span class="icon" aria-hidden="true">↓</span>Download baseline data CSV</button></div></article>
+</div>
+<article class="card gap"><h3>Recalculated baseline results</h3><p class="caption">The arrival and service rates are the paper’s inputs. Every other column is computed from those rates.</p><div class="table-wrap" tabindex="0" aria-label="Scrollable baseline table"><table id="baseline-table"></table></div></article>
+</section>
+</main>
+<footer class="footer"><div class="wrap"><p><strong>ATM Queue Lab</strong></p><p>Project by <strong>Dr. Supriya Nagpal</strong></p><p class="small">An interactive research companion to the 2018 bank ATM case study. <a href="#top">Back to top ↑</a></p></div></footer>
+<noscript><div class="wrap note">Enable JavaScript to run the interactive lab. The published figures and tables are available below the Probability Explorer.</div></noscript>
+<script src="app.js"></script>
+</body>
+</html>
